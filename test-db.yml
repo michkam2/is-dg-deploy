@@ -1,0 +1,52 @@
+version: '3.8'
+services:
+  backend-app:
+    image: michkam1005/backend:platform
+    networks:
+      - internalnetwork
+    ports:
+      - "8080:8080"
+    environment:
+      - spring.data.mongodb.authentication-database=admin
+      - spring.data.mongodb.username=rootuser
+      - spring.data.mongodb.password=rootpass
+      - spring.data.mongodb.database=test
+      - spring.data.mongodb.port=27017
+      - spring.data.mongodb.host=mongo_test
+      - spring.data.mongodb.auto-index-creation=true
+      - spring.main.allow-circular-references=true
+      # Set ApiKey
+      - sdg.http.auth-token-header-name=SDGApiKey
+      - spring.security.user.password=sdg123
+
+  frontend-app:
+    build:
+      context: frontend_2
+      args:
+        - API_URL=http://147.175.119.120:8080/api
+    networks:
+      - internalnetwork
+    environment:
+      - API_URL=http://147.175.119.120:8080/api
+    ports:
+      - "8083:80"
+
+#  ######## MONGODB SHARD0 ########
+
+  mongo_test:
+    build:
+      context: mongod
+    command: mongod -f /etc/mongod.conf
+    volumes:
+      - ./mongod/mongod.conf:/etc/mongod.conf
+      - ./data/mongotest:/data/db
+    networks:
+      - internalnetwork
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=rootuser
+      - MONGO_INITDB_ROOT_PASSWORD=rootpass
+    expose:
+      - "27017"
+
+networks:
+  internalnetwork: {}
