@@ -1,0 +1,316 @@
+version: '3.8'
+services:
+
+  backend-app:
+    image: michkam1005/backend:1.3
+    networks:
+      - internalnetwork
+    ports:
+      - "8080:8080"
+    environment:
+      - spring.data.mongodb.authentication-database=admin
+      - spring.data.mongodb.username=rootuser
+      - spring.data.mongodb.password=rootpass
+      - spring.data.mongodb.database=test
+      - spring.data.mongodb.port=27017
+      - spring.data.mongodb.host=mongos-router0
+      - spring.data.mongodb.auto-index-creation=true
+      - spring.main.allow-circular-references=true
+      # Set ApiKey
+      - sdg.http.auth-token-header-name=SDGApiKey
+      - spring.security.user.password=sdg123
+    deploy:
+      placement:
+        constraints:
+          - node.labels.new-label == manager
+      restart_policy:
+        condition: on-failure
+
+  frontend-app:
+    image: michkam1005/frontend:1.3.v4
+    networks:
+      - internalnetwork
+    environment:
+      - API_URL=http://147.175.119.120:80/api
+    ports:
+      - "80:80"
+    deploy:
+      placement:
+        constraints:
+          - node.labels.new-label == manager
+      restart_policy:
+        condition: on-failure
+
+#  ######## MONGODB SHARD0 ########
+
+  shard0-replica0:
+    image: michkam1005/mongod:1.3
+    command: mongod -f /etc/mongod.conf --shardsvr --replSet shard0
+    volumes:
+      - ./mongod/mongod.conf:/etc/mongod.conf
+      - ./data/s0r0:/data/db
+    networks:
+      - internalnetwork
+    environment:
+      - REPSET_NAME=shard0
+      - DO_INIT_REPSET=true
+    expose:
+      - "27017"
+    deploy:
+      placement:
+        constraints:
+          - node.labels.new-label == worker124
+      restart_policy:
+        condition: on-failure
+
+  shard0-replica1:
+    image: michkam1005/mongod:1.3
+    command: mongod -f /etc/mongod.conf --shardsvr --replSet shard0
+    volumes:
+      - ./mongod/mongod.conf:/etc/mongod.conf
+      - ./data/s0r1:/data/db
+    networks:
+      - internalnetwork
+    environment:
+      - REPSET_NAME=shard0
+    expose:
+      - "27017"
+    deploy:
+      placement:
+        constraints:
+          - node.labels.new-label == worker126
+      restart_policy:
+        condition: on-failure
+
+  shard0-replica2:
+    image: michkam1005/mongod:1.3
+    command: mongod -f /etc/mongod.conf --shardsvr --replSet shard0
+    volumes:
+      - ./mongod/mongod.conf:/etc/mongod.conf
+      - ./data/s0r2:/data/db
+    networks:
+      - internalnetwork
+    environment:
+      - REPSET_NAME=shard0
+    expose:
+      - "27017"
+    deploy:
+      placement:
+        constraints:
+          - node.labels.new-label == worker125
+      restart_policy:
+        condition: on-failure
+
+######## MONGODB SHARD1 ########
+
+  shard1-replica0:
+    image: michkam1005/mongod:1.3
+    command: mongod -f /etc/mongod.conf --shardsvr --replSet shard1
+    volumes:
+      - ./mongod/mongod.conf:/etc/mongod.conf
+      - ./data/s1r0:/data/db
+    networks:
+      - internalnetwork
+    environment:
+      - REPSET_NAME=shard1
+      - DO_INIT_REPSET=true
+    expose:
+      - "27017"
+    deploy:
+      placement:
+        constraints:
+          - node.labels.new-label == worker125
+      restart_policy:
+        condition: on-failure
+
+  shard1-replica1:
+    image: michkam1005/mongod:1.3
+    command: mongod -f /etc/mongod.conf --shardsvr --replSet shard1
+    volumes:
+      - ./mongod/mongod.conf:/etc/mongod.conf
+      - ./data/s1r1:/data/db
+    networks:
+      - internalnetwork
+    environment:
+      - REPSET_NAME=shard1
+    expose:
+      - "27017"
+    deploy:
+      placement:
+        constraints:
+          - node.labels.new-label == worker124
+      restart_policy:
+        condition: on-failure
+
+  shard1-replica2:
+    image: michkam1005/mongod:1.3
+    command: mongod -f /etc/mongod.conf --shardsvr --replSet shard1
+    volumes:
+      - ./mongod/mongod.conf:/etc/mongod.conf
+      - ./data/s1r2:/data/db
+    networks:
+      - internalnetwork
+    environment:
+      - REPSET_NAME=shard1
+    expose:
+      - "27017"
+    deploy:
+      placement:
+        constraints:
+          - node.labels.new-label == worker126
+      restart_policy:
+        condition: on-failure
+
+  ######## MONGODB SHARD2 ########
+
+  shard2-replica0:
+    image: michkam1005/mongod:1.3
+    command: mongod -f /etc/mongod.conf --shardsvr --replSet shard2
+    volumes:
+      - ./mongod/mongod.conf:/etc/mongod.conf
+      - ./data/s2r0:/data/db
+    networks:
+      - internalnetwork
+    environment:
+      - REPSET_NAME=shard2
+      - DO_INIT_REPSET=true
+    expose:
+      - "27017"
+    deploy:
+      placement:
+        constraints:
+          - node.labels.new-label == worker126
+      restart_policy:
+        condition: on-failure
+
+  shard2-replica1:
+    image: michkam1005/mongod:1.3
+    command: mongod -f /etc/mongod.conf --shardsvr --replSet shard2
+    volumes:
+      - ./mongod/mongod.conf:/etc/mongod.conf
+      - ./data/s2r1:/data/db
+    networks:
+      - internalnetwork
+    environment:
+      - REPSET_NAME=shard2
+    expose:
+      - "27017"
+    deploy:
+      placement:
+        constraints:
+          - node.labels.new-label == worker125
+      restart_policy:
+        condition: on-failure
+
+  shard2-replica2:
+    image: michkam1005/mongod:1.3
+    command: mongod -f /etc/mongod.conf --shardsvr --replSet shard2
+    volumes:
+      - ./mongod/mongod.conf:/etc/mongod.conf
+      - ./data/s2r2:/data/db
+    networks:
+      - internalnetwork
+    environment:
+      - REPSET_NAME=shard2
+    expose:
+      - "27017"
+    deploy:
+      placement:
+        constraints:
+          - node.labels.new-label == worker124
+      restart_policy:
+        condition: on-failure
+
+  configdb-replica0:
+    image: michkam1005/mongod:1.3
+    command: mongod -f /etc/mongod.conf --configsvr --replSet configdb
+    volumes:
+      - ./mongod/mongod.conf:/etc/mongod.conf
+      - ./data/confdb0:/data/db
+    networks:
+      - internalnetwork
+    environment:
+      - REPSET_NAME=configdb
+      - DO_INIT_REPSET=true
+    expose:
+      - "27017"
+    deploy:
+      placement:
+        constraints:
+          - node.labels.new-label == worker123
+      restart_policy:
+        condition: on-failure
+  
+  configdb-replica1:
+    image: michkam1005/mongod:1.3
+    command: mongod -f /etc/mongod.conf --configsvr --replSet configdb
+    volumes:
+      - ./mongod/mongod.conf:/etc/mongod.conf
+      - ./data/confdb1:/data/db
+    networks:
+      - internalnetwork
+    environment:
+      - REPSET_NAME=configdb
+    expose:
+      - "27017"
+    deploy:
+      placement:
+        constraints:
+          - node.labels.new-label == worker123
+      restart_policy:
+        condition: on-failure
+
+  configdb-replica2:
+    image: michkam1005/mongod:1.3
+    command: mongod -f /etc/mongod.conf --configsvr --replSet configdb
+    volumes:
+      - ./mongod/mongod.conf:/etc/mongod.conf
+      - ./data/confdb2:/data/db
+    networks:
+      - internalnetwork
+    environment:
+      - REPSET_NAME=configdb
+    expose:
+      - "27017"
+    deploy:
+      placement:
+        constraints:
+          - node.labels.new-label == worker123
+      restart_policy:
+        condition: on-failure
+
+  ######## MONGODB MONGOS ROUTERS ########
+
+  mongos-router0:
+    image: michkam1005/mongos:1.3
+    command: mongos --port 27017 --bind_ip 0.0.0.0 --configdb "configdb/configdb-replica0:27017,configdb-replica1:27017,configdb-replica2:27017"
+    depends_on:
+      - shard0-replica0
+      - shard0-replica1
+      - shard0-replica2
+      - shard1-replica0
+      - shard1-replica1
+      - shard1-replica2
+      - shard2-replica0
+      - shard2-replica1
+      - shard2-replica2
+      - configdb-replica0
+      - configdb-replica1
+      - configdb-replica2
+    networks:
+      - internalnetwork
+    environment:
+      - SHARD_LIST=shard0/shard0-replica0:27017,shard0-replica1:27017,shard0-replica2:27017;shard1/shard1-replica0:27017,shard1-replica1:27017,shard1-replica2:27017;shard2/shard2-replica0:27017,shard2-replica1:27017,shard2-replica2:27017
+    expose:
+      - "27017"
+    ports:
+      - "27017:27017"
+    deploy:
+      placement:
+        constraints:
+          - node.labels.new-label == worker122
+      restart_policy:
+        condition: on-failure
+
+networks:
+  internalnetwork: {}
