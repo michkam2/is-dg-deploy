@@ -17,5 +17,5 @@ for shard in "${array[@]}"; do
 EOF
 done
 /usr/bin/mongo --port 27017 <<EOF
-	db.getSiblingDB("admin").createUser({user: "rootuser", pwd: "rootpass", roles: [{"role":"root","db":"admin"}]});
+	db.getSiblingDB("admin").createUser({user: "admin_user_2", pwd: "@vM3JjQco9@Qa6jYTSt36YjcrOSj#mFE", roles: [{"role":"userAdminAnyDatabase","db":"admin"}]});
 EOF
